@@ -12,7 +12,9 @@ namespace SIAC.Constantes
 {
     public class Cls_Constantes
     {
-        public static string Str_Conexion = "server = 172.16.0.115;Database = Simapag; Uid = usrsimapag; Pwd = C0nt3l16";
+        //public static string Str_Conexion = "server = 172.16.0.115;Database = SIMAPAG_20161015; Uid = usrsimapag; Pwd = C0nt3l16";
+
+        public static string Str_Conexion = "server =132.147.64.208;Database =Simapag; Uid =dbcajas; Pwd =TellerMachine01";
 
         //public static string Str_Conexion = "server = 132.147.64.208;Database = Simapag; Uid = dbcajas; Pwd = TellerMachine01";
         //Server=10.10.1.6; Database=SIAC_OPDAPAS_ADMINISTRATIVO; Uid=usropdapas; Pwd=opdapas2013;"

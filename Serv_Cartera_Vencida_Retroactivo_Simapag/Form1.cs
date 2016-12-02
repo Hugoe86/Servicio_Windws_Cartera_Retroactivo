@@ -54,7 +54,7 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
             DateTime Dtime_Mes_actual = DateTime.Now;
             DateTime Dtime_Fecha_Bd = DateTime.Now;
 
-            StreamWriter SW = new StreamWriter("C:\\Servicios_siac\\Historial.txt", true);
+            //StreamWriter SW = new StreamWriter("C:\\Servicios_siac\\Historial.txt", true);
 
             try
             {
@@ -64,8 +64,8 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                
                 //  se consulta el historico de fechas pendientes por ejecutar
                 Dt_Historico = Consulta_Existencia_Mes();
-                SW.WriteLine("************************************************************");
-                SW.WriteLine("tabla de fechas ok " + DateTime.Now.ToString());
+                //SW.WriteLine("************************************************************");
+                //SW.WriteLine("tabla de fechas ok " + DateTime.Now.ToString());
 
 
                 if (Dt_Historico != null)
@@ -79,13 +79,13 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                             && Dtime_Mes_actual.Month == Dtime_Fecha_Bd.Month
                             && Dtime_Mes_actual.Day == Dtime_Fecha_Bd.Day)
                         {
-                            if (Dtime_Mes_actual.Hour >= 10)
+                            if (Dtime_Mes_actual.Hour >= 9)
                             {
 
-                                SW.WriteLine("Validacion de hora correcta " + DateTime.Now.ToString());
+                                //SW.WriteLine("Validacion de hora correcta " + DateTime.Now.ToString());
 
                                 Dt_Consulta = Consulta_Cartera_Vencida();
-                                SW.WriteLine("Consulta de la cartera vencida exitosa  " + DateTime.Now.ToString());
+                                //SW.WriteLine("Consulta de la cartera vencida exitosa  " + DateTime.Now.ToString());
                                 
                                 //Grid_Resultado.DataSource = Dt_Consulta;
 
@@ -101,8 +101,8 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
 
 
                                 //  se insertan los registros
-                                Insertar(Dt_Consulta, ProBar_Estado);
-                                SW.WriteLine("insercion exitosa" + DateTime.Now.ToString());    
+                                //Insertar(Dt_Consulta, ProBar_Estado);
+                                //SW.WriteLine("insercion exitosa" + DateTime.Now.ToString());    
                                 watch.Stop();
                             }
                         }
@@ -115,8 +115,8 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                 Txt_Hora_Termino.Text = DateTime.Now.ToShortTimeString();
 
 
-                SW.WriteLine("************************************************************");
-                SW.Close();
+                //SW.WriteLine("************************************************************");
+                //SW.Close();
             }
             catch (Exception Ex)
             {
@@ -188,6 +188,10 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                                                 ", Recargo_Drenaje " +  //  22
                                                 ", Recargo_Saneamiento " +  //  23
                                                 ", dia" +               //  24
+                                                ", Estatus_Predios" +   //  25
+                                                ", Estatus_Cortado" +   //  26
+                                                ", Estatus_Cobranza" +  //  27
+                                                ", Estatus_Requerido" + //  28
                                                     ")");
 
                             Mi_Sql.Append(" Values ");
@@ -217,6 +221,11 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                             Mi_Sql.Append(", '" + Convert.ToDouble(Registro["Recargo_Drenaje"].ToString()).ToString(new CultureInfo("es-MX")) + "'");    //  22
                             Mi_Sql.Append(", '" + Convert.ToDouble(Registro["Recargo_Saneamiento"].ToString()).ToString(new CultureInfo("es-MX")) + "'");//  23
                             Mi_Sql.Append(", '" + DateTime.Now.Day.ToString() + "'");               //  24
+
+                            Mi_Sql.Append(", '" + Registro["Estatus_Predio"].ToString() + "'");            //  25
+                            Mi_Sql.Append(", '" + Registro["Estatus_Cortado"].ToString() + "'");            //  26
+                            Mi_Sql.Append(", '" + Registro["Estatus_Requerido"].ToString() + "'");            //  27
+                            Mi_Sql.Append(", '" + Registro["Estatus_Cobranza"].ToString() + "'");            //  28
 
                             Mi_Sql.Append(")");
 
@@ -386,6 +395,10 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                         Mi_Sql.Append(", u.NO_EXTERIOR as Numero_Exterior");
                         Mi_Sql.Append(", u.NO_INTERIOR as Numero_Interior");
                         Mi_Sql.Append(", c.NOMBRE AS Colonia");
+                        Mi_Sql.Append(", p.Estatus as Estatus_Predio");
+                        Mi_Sql.Append(", p.Cortado as Estatus_Cortado");
+                        Mi_Sql.Append(", p.Requerido as Estatus_Requerido");
+                        Mi_Sql.Append(", p.Cobranza as Estatus_Cobranza");
 
                         //**************************************************************************************************************
                         //  total
@@ -638,11 +651,11 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                         //**************************************************************************************************************
                         //**************************************************************************************************************
                         Mi_Sql.Append(" FROM Cat_Cor_Predios p " +
-                                            " JOIN Ope_Cor_Facturacion_Recibos f ON f.Predio_ID = p.Predio_ID" +
-                                            " JOIN Ope_Cor_Facturacion_Recibos_Detalles fd ON fd.No_Factura_Recibo = f.No_Factura_Recibo" +
-                                            " JOIN Cat_Cor_Usuarios u ON p.Usuario_ID = u.USUARIO_ID" +
-                                            " JOIN Cat_Cor_Tarifas t ON t.Tarifa_ID = p.Tarifa_ID" +
-                                            " JOIN Cat_Cor_Regiones r ON r.Region_ID = p.Region_ID" +
+                                            " LEFT OUTER JOIN Ope_Cor_Facturacion_Recibos f ON f.Predio_ID = p.Predio_ID" +
+                                            " LEFT OUTER JOIN Ope_Cor_Facturacion_Recibos_Detalles fd ON fd.No_Factura_Recibo = f.No_Factura_Recibo" +
+                                            " LEFT OUTER JOIN Cat_Cor_Usuarios u ON p.Usuario_ID = u.USUARIO_ID" +
+                                            " LEFT OUTER JOIN Cat_Cor_Tarifas t ON t.Tarifa_ID = p.Tarifa_ID" +
+                                            " LEFT OUTER JOIN Cat_Cor_Regiones r ON r.Region_ID = p.Region_ID" +
                                             " LEFT OUTER JOIN Cat_Cor_Colonias c ON c.COLONIA_ID = p.Colonia_ID" +
                                             " LEFT OUTER JOIN Cat_Cor_Calles ca ON ca.CALLE_ID = p.Calle_ID");
 
@@ -682,6 +695,10 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                         Mi_Sql.Append(", u.APELLIDO_PATERNO");
                         Mi_Sql.Append(", u.APELLIDO_MATERNO");
                         Mi_Sql.Append(", t.Abreviatura");
+                        Mi_Sql.Append(", p.Estatus ");
+                        Mi_Sql.Append(", p.Cortado ");
+                        Mi_Sql.Append(", p.Requerido");
+                        Mi_Sql.Append(", p.Cobranza");
 
                         //**************************************************************************************************************
                         //**************************************************************************************************************
@@ -694,7 +711,7 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                        
 
                         comando.CommandText = Mi_Sql.ToString();
-                        comando.CommandTimeout = 100;
+                        comando.CommandTimeout = 200;
                         da = new SqlDataAdapter(comando);
                         ds = new DataSet();
                         da.Fill(ds);

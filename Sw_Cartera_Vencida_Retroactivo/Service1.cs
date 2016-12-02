@@ -210,6 +210,10 @@ namespace Sw_Cartera_Vencida_Retroactivo
                                                 ", Recargo_Drenaje " +  //  22
                                                 ", Recargo_Saneamiento " +  //  23
                                                 ", dia" +               //  24
+                                                ", Estatus_Predios" +   //  25
+                                                ", Estatus_Cortado" +   //  26
+                                                ", Estatus_Cobranza" +  //  27
+                                                ", Estatus_Requerido" + //  28
                                                     ")");
 
                             Mi_Sql.Append(" Values ");
@@ -239,6 +243,12 @@ namespace Sw_Cartera_Vencida_Retroactivo
                             Mi_Sql.Append(", '" + Convert.ToDouble(Registro["Recargo_Drenaje"].ToString()).ToString(new CultureInfo("es-MX")) + "'");    //  22
                             Mi_Sql.Append(", '" + Convert.ToDouble(Registro["Recargo_Saneamiento"].ToString()).ToString(new CultureInfo("es-MX")) + "'");//  23
                             Mi_Sql.Append(", '" + DateTime.Now.Day.ToString() + "'");               //  24
+
+                            Mi_Sql.Append(", '" + Registro["Estatus_Predio"].ToString() + "'");            //  25
+                            Mi_Sql.Append(", '" + Registro["Estatus_Cortado"].ToString() + "'");            //  26
+                            Mi_Sql.Append(", '" + Registro["Estatus_Requerido"].ToString() + "'");            //  27
+                            Mi_Sql.Append(", '" + Registro["Estatus_Cobranza"].ToString() + "'");            //  28
+
                             Mi_Sql.Append(")");
 
                             Obj_Comando.CommandText = Mi_Sql.ToString();
@@ -359,6 +369,11 @@ namespace Sw_Cartera_Vencida_Retroactivo
                         Mi_Sql.Append(", u.NO_EXTERIOR as Numero_Exterior");
                         Mi_Sql.Append(", u.NO_INTERIOR as Numero_Interior");
                         Mi_Sql.Append(", c.NOMBRE AS Colonia");
+                        Mi_Sql.Append(", p.Estatus as Estatus_Predio");
+                        Mi_Sql.Append(", p.Cortado as Estatus_Cortado");
+                        Mi_Sql.Append(", p.Requerido as Estatus_Requerido");
+                        Mi_Sql.Append(", p.Cobranza as Estatus_Cobranza");
+
 
                         //**************************************************************************************************************
                         //  total
@@ -611,11 +626,11 @@ namespace Sw_Cartera_Vencida_Retroactivo
                         //**************************************************************************************************************
                         //**************************************************************************************************************
                         Mi_Sql.Append(" FROM Cat_Cor_Predios p " +
-                                            " JOIN Ope_Cor_Facturacion_Recibos f ON f.Predio_ID = p.Predio_ID" +
-                                            " JOIN Ope_Cor_Facturacion_Recibos_Detalles fd ON fd.No_Factura_Recibo = f.No_Factura_Recibo" +
-                                            " JOIN Cat_Cor_Usuarios u ON p.Usuario_ID = u.USUARIO_ID" +
-                                            " JOIN Cat_Cor_Tarifas t ON t.Tarifa_ID = p.Tarifa_ID" +
-                                            " JOIN Cat_Cor_Regiones r ON r.Region_ID = p.Region_ID" +
+                                            " LEFT OUTER JOIN Ope_Cor_Facturacion_Recibos f ON f.Predio_ID = p.Predio_ID" +
+                                            " LEFT OUTER JOIN Ope_Cor_Facturacion_Recibos_Detalles fd ON fd.No_Factura_Recibo = f.No_Factura_Recibo" +
+                                            " LEFT OUTER JOIN Cat_Cor_Usuarios u ON p.Usuario_ID = u.USUARIO_ID" +
+                                            " LEFT OUTER JOIN Cat_Cor_Tarifas t ON t.Tarifa_ID = p.Tarifa_ID" +
+                                            " LEFT OUTER JOIN Cat_Cor_Regiones r ON r.Region_ID = p.Region_ID" +
                                             " LEFT OUTER JOIN Cat_Cor_Colonias c ON c.COLONIA_ID = p.Colonia_ID" +
                                             " LEFT OUTER JOIN Cat_Cor_Calles ca ON ca.CALLE_ID = p.Calle_ID");
 
@@ -655,6 +670,10 @@ namespace Sw_Cartera_Vencida_Retroactivo
                         Mi_Sql.Append(", u.APELLIDO_PATERNO");
                         Mi_Sql.Append(", u.APELLIDO_MATERNO");
                         Mi_Sql.Append(", t.Abreviatura");
+                        Mi_Sql.Append(", p.Estatus ");
+                        Mi_Sql.Append(", p.Cortado ");
+                        Mi_Sql.Append(", p.Requerido");
+                        Mi_Sql.Append(", p.Cobranza");
 
                         //**************************************************************************************************************
                         //**************************************************************************************************************
