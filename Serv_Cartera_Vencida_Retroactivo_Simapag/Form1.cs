@@ -101,7 +101,7 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
 
 
                                 //  se insertan los registros
-                                //Insertar(Dt_Consulta, ProBar_Estado);
+                                Insertar(Dt_Consulta, ProBar_Estado);
                                 //SW.WriteLine("insercion exitosa" + DateTime.Now.ToString());    
                                 watch.Stop();
                             }
@@ -192,6 +192,7 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                                                 ", Estatus_Cortado" +   //  26
                                                 ", Estatus_Cobranza" +  //  27
                                                 ", Estatus_Requerido" + //  28
+                                                ", Convenio" +          //  29
                                                     ")");
 
                             Mi_Sql.Append(" Values ");
@@ -226,6 +227,7 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                             Mi_Sql.Append(", '" + Registro["Estatus_Cortado"].ToString() + "'");            //  26
                             Mi_Sql.Append(", '" + Registro["Estatus_Requerido"].ToString() + "'");            //  27
                             Mi_Sql.Append(", '" + Registro["Estatus_Cobranza"].ToString() + "'");            //  28
+                            Mi_Sql.Append(", '" + Registro["Convenio"].ToString() + "'");                   //  29
 
                             Mi_Sql.Append(")");
 
@@ -399,6 +401,16 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                         Mi_Sql.Append(", p.Cortado as Estatus_Cortado");
                         Mi_Sql.Append(", p.Requerido as Estatus_Requerido");
                         Mi_Sql.Append(", p.Cobranza as Estatus_Cobranza");
+
+                        Mi_Sql.Append(", case " +
+                                        " when ( " +
+                                            " select count(conv.No_Convenio)  " +
+                                                " from Ope_Cor_Convenios conv " +
+                                                " where conv.Predio_ID = p.Predio_ID " +
+                                                " and conv.Estatus = 'PENDIENTE'" +
+                                            ") >= 1 then 1" +
+                                            " ELSE 0 " +                                            
+                                        " end as Convenio"); 
 
                         //**************************************************************************************************************
                         //  total
@@ -617,6 +629,7 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                                                         " SELECT Concepto_Rezago_Saneamiento_Id" +
                                                         " FROM Cat_Cor_Parametros" +
                                                         ")" +
+                                                    " or co.Concepto_ID in (SELECT Concepto_Rezago_Agua_Comercial_Id from Cat_Cor_Parametros)" +
                                                     ")" +
                                             "), 0) AS [Rezago]");
 
@@ -636,7 +649,7 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                                             " AND (" +
                                                 " co.Nombre NOT LIKE '%recargo%'" +
                                                 " AND co.Nombre NOT LIKE '%rezago%'" +
-                                                " AND co.Nombre NOT LIKE '%consumo agua'" +
+                                                " AND co.Nombre NOT LIKE '%agua'" +
                                                 " AND co.Nombre NOT LIKE '%AGUA COMERCIAL'" +
                                                 " AND co.Nombre NOT LIKE '%drenaje'" +
                                                 " AND co.Nombre NOT LIKE '%saneamiento'" +
@@ -666,10 +679,10 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
                         //  where
                         //**************************************************************************************************************
                         //**************************************************************************************************************
-                        Mi_Sql.Append(" WHERE f.Estatus_Recibo IN (" +
-                                        "'PENDIENTE'" +
-                                        ",'PARCIAL'" +
-                                        ")");
+                        //Mi_Sql.Append(" WHERE f.Estatus_Recibo IN (" +
+                        //                "'PENDIENTE'" +
+                        //                ",'PARCIAL'" +
+                        //                ")");
 
                         //**************************************************************************************************************
                         //**************************************************************************************************************
