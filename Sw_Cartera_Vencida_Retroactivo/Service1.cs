@@ -83,11 +83,13 @@ namespace Sw_Cartera_Vencida_Retroactivo
         ///*******************************************************************************************************
         public void Tiempo_Contador(object Sender, EventArgs e)
         {
-           DataTable Dt_Consulta = new DataTable();
+            DataTable Dt_Consulta = new DataTable();
             DataTable Dt_Historico = new DataTable();
             DateTime Dtime_Mes_actual = DateTime.Now;
             DateTime Dtime_Fecha_Bd = DateTime.Now;
             DateTime Dtime_Hora_Inicio;
+            DateTime Dtime_Fecha_Dia_Anterior = DateTime.Now;
+            Int32 Int_Dias = 0;
             //StreamWriter SW = new StreamWriter("C:\\Servicios_siac\\Historial.txt", true);
 
             try
@@ -105,24 +107,44 @@ namespace Sw_Cartera_Vencida_Retroactivo
                     foreach (DataRow Registro_Fechas in Dt_Historico.Rows)
                     {
                         Dtime_Fecha_Bd = Convert.ToDateTime(Registro_Fechas["Fecha"].ToString());
+                        Int_Dias = DateTime.Compare(Dtime_Fecha_Bd, Dtime_Fecha_Dia_Anterior);
 
                         //  validamos que sea el dia registrado en la base de datos
                         if (Dtime_Mes_actual.Year == Dtime_Fecha_Bd.Year
                             && Dtime_Mes_actual.Month == Dtime_Fecha_Bd.Month
                             && Dtime_Mes_actual.Day == Dtime_Fecha_Bd.Day)
                         {
-                            if (Dtime_Mes_actual.Hour >= 19)
+                            if (Dtime_Mes_actual.Hour >= 18
+                                && (Dtime_Mes_actual.Hour <= 20 && Dtime_Mes_actual.Minute <= 59))
                             {
 
                                 //SW.WriteLine("Validacion de hora correcta " + DateTime.Now.ToString());
+                                
+                                Insertar_Fecha_Inicio_Servicio();
+
 
                                 Dt_Consulta = Consulta_Cartera_Vencida();
                                 //SW.WriteLine("Consulta de la cartera vencida exitosa  " + DateTime.Now.ToString());
 
 
                                 //  se insertan los registros
-                                Insertar(Dt_Consulta);
+                                Insertar(Dt_Consulta, Dtime_Fecha_Bd);
                                 //SW.WriteLine("insercion exitosa" + DateTime.Now.ToString());
+
+                            }
+                        }
+                        else if (Int_Dias < 0)
+                        //  se valida si la fecha es anterior para realizar el proceso se insercion
+                        {
+                            if (Dtime_Mes_actual.Hour >= 0
+                                && (Dtime_Mes_actual.Hour <= 7 && Dtime_Mes_actual.Minute <= 59))
+                            {
+                                Insertar_Fecha_Inicio_Servicio();
+
+                                Dt_Consulta = Consulta_Cartera_Vencida();
+
+                                //  se insertan los registros
+                                Insertar(Dt_Consulta, Dtime_Fecha_Bd);
 
                             }
                         }
@@ -148,6 +170,72 @@ namespace Sw_Cartera_Vencida_Retroactivo
         }// fin del evento
 
 
+        /////*******************************************************************************************************
+        ///// <summary>
+        ///// Crear el registro de la cartera vencida
+        ///// </summary>
+        ///// <returns>
+        ///// <creo>Hugo Enrique Ramírez Aguilera</creo>
+        ///// <fecha_creo>13-Enero-2016</fecha_creo>
+        ///// <modifico></modifico>
+        ///// <fecha_modifico></fecha_modifico>
+        ///// <causa_modificacion></causa_modificacion>
+        ///*******************************************************************************************************
+        private void Insertar_Fecha_Inicio_Servicio()
+        {
+            StringBuilder Mi_Sql = new StringBuilder();
+            SqlTransaction Obj_Transaccion = null;
+            Int64 Cont_Registro = 0;
+
+            try
+            {
+
+
+                using (SqlConnection Obj_Conexion = new SqlConnection(Cls_Constantes.Str_Conexion))
+                {
+
+                    Obj_Conexion.Open();
+
+                    using (SqlCommand Obj_Comando = Obj_Conexion.CreateCommand())
+                    {
+                        Obj_Transaccion = Obj_Conexion.BeginTransaction();
+                        Obj_Comando.Transaction = Obj_Transaccion;
+                        Obj_Comando.Connection = Obj_Conexion;
+
+
+
+
+                        //  ***************************************************************************************
+                        //  ***************************************************************************************
+                        //  ***************************************************************************************
+                        //  UPDATE A LA FECHA ANTERIOR
+                        Mi_Sql.Clear();
+                        Mi_Sql.Append(" update Ope_Cor_Cc_Cartera_Vencidad_Fechas set");
+                        Mi_Sql.Append(" Fecha_Inicio_Servicio = getdate()");
+                        Mi_Sql.Append(" where estatus = 'N'");
+                        Obj_Comando.CommandText = Mi_Sql.ToString();
+                        Obj_Comando.CommandTimeout = 60;
+                        Obj_Comando.ExecuteNonQuery();
+
+
+
+                        //  se ejecuta la transaccion
+                        Obj_Transaccion.Commit();
+
+                    }// fin using obj_comand
+
+
+                    Obj_Conexion.Close();
+
+                }// fin usaing Obj_conexion
+
+            }
+            catch (Exception Ex)
+            {
+                Obj_Transaccion.Rollback();
+                throw new Exception("Error: " + Ex.Message);
+            }
+        }
 
         /////*******************************************************************************************************
         ///// <summary>
@@ -160,7 +248,7 @@ namespace Sw_Cartera_Vencida_Retroactivo
         ///// <fecha_modifico></fecha_modifico>
         ///// <causa_modificacion></causa_modificacion>
         ///*******************************************************************************************************
-        private void Insertar(DataTable Dt_Consulta)
+        private void Insertar(DataTable Dt_Consulta, DateTime Dtime_Fecha_A_Insertar)
         {
             StringBuilder Mi_Sql = new StringBuilder();
             SqlTransaction Obj_Transaccion = null;
@@ -168,7 +256,7 @@ namespace Sw_Cartera_Vencida_Retroactivo
             try
             {
                 DateTime Dtime_Nueva_Fecha = DateTime.Now;
-                Dtime_Nueva_Fecha = Dtime_Nueva_Fecha.AddDays(1);
+                Dtime_Nueva_Fecha = Dtime_Fecha_A_Insertar.AddDays(1);
 
 
                 using (SqlConnection Obj_Conexion = new SqlConnection(Cls_Constantes.Str_Conexion))
@@ -243,7 +331,7 @@ namespace Sw_Cartera_Vencida_Retroactivo
                             Mi_Sql.Append(", '" + Convert.ToDouble(Registro["Recargo_Agua"].ToString()).ToString(new CultureInfo("es-MX")) + "'");       //  21
                             Mi_Sql.Append(", '" + Convert.ToDouble(Registro["Recargo_Drenaje"].ToString()).ToString(new CultureInfo("es-MX")) + "'");    //  22
                             Mi_Sql.Append(", '" + Convert.ToDouble(Registro["Recargo_Saneamiento"].ToString()).ToString(new CultureInfo("es-MX")) + "'");//  23
-                            Mi_Sql.Append(", '" + DateTime.Now.Day.ToString() + "'");               //  24
+                            Mi_Sql.Append(", '" + Dtime_Fecha_A_Insertar.Day.ToString() + "'");               //  24
 
                             Mi_Sql.Append(", '" + Registro["Estatus_Predio"].ToString() + "'");            //  25
                             Mi_Sql.Append(", '" + Registro["Estatus_Cortado"].ToString() + "'");            //  26
@@ -270,6 +358,7 @@ namespace Sw_Cartera_Vencida_Retroactivo
                         Mi_Sql.Clear();
                         Mi_Sql.Append(" update Ope_Cor_Cc_Cartera_Vencidad_Fechas set");
                         Mi_Sql.Append(" estatus = 'S'");
+                        Mi_Sql.Append(", Fecha_Fin_Servicio = getdate()");
                         Mi_Sql.Append(" where estatus = 'N'");
                         Obj_Comando.CommandText = Mi_Sql.ToString();
                         Obj_Comando.CommandTimeout = 60;
