@@ -255,8 +255,8 @@ namespace Serv_Cartera_Vencida_Retroactivo_Simapag
 
                             Mi_Sql.Append(", '" + Registro["Estatus_Predio"].ToString() + "'");            //  25
                             Mi_Sql.Append(", '" + Registro["Estatus_Cortado"].ToString() + "'");            //  26
-                            Mi_Sql.Append(", '" + Registro["Estatus_Requerido"].ToString() + "'");            //  27
-                            Mi_Sql.Append(", '" + Registro["Estatus_Cobranza"].ToString() + "'");            //  28
+                            Mi_Sql.Append(", '" + Registro["Estatus_Cobranza"].ToString() + "'");            //  27
+                            Mi_Sql.Append(", '" + Registro["Estatus_Requerido"].ToString() + "'");            //  28
                             Mi_Sql.Append(", '" + Registro["Convenio"].ToString() + "'");                   //  29
 
                             Mi_Sql.Append(")");
